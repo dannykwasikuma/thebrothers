@@ -6,6 +6,7 @@ import { useListFeaturedServices, useListTestimonials } from '@/hooks/useCatalog
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import AnnouncementBanner from '@/components/AnnouncementBanner';
+import CustomerReviews from '@/components/CustomerReviews';
 
 /* ── animated counter ── */
 function AnimatedCounter({ target, suffix = '+' }: { target: number; suffix?: string }) {
@@ -337,6 +338,8 @@ const Home: React.FC = () => {
           )}
         </div>
       </section>
+
+      <CustomerReviews />
 
       {/* ── CTA ── */}
       <section className="relative py-36 px-4 overflow-hidden flex items-center justify-center bg-[#0D0A07]">

@@ -26,9 +26,12 @@ import Admin from "@/pages/Admin";
 import StaffSignup from "@/pages/StaffSignup";
 import SignInPage from "@/pages/SignInPage";
 import SignUpPage from "@/pages/SignUpPage";
+import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
+import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import LoginPortal from "@/pages/LoginPortal";
 import StaffSignIn from "@/pages/StaffSignIn";
 import StaffHub from "@/pages/StaffHub";
+import OurStaff from "@/pages/OurStaff";
 import Terms from "@/pages/Terms";
 import Privacy from "@/pages/Privacy";
 import NotFound from "@/pages/not-found";
@@ -57,6 +60,8 @@ function AppRoutes() {
       <Route path="/login" component={LoginPortal} />
       <Route path="/sign-in" component={SignInPage} />
       <Route path="/sign-up" component={SignUpPage} />
+      <Route path="/forgot-password" component={ForgotPasswordPage} />
+      <Route path="/reset-password" component={ResetPasswordPage} />
       <Route path="/staff/sign-in" component={StaffSignIn} />
 
       <Route path="/receipt/:orderId">
@@ -76,6 +81,7 @@ function AppRoutes() {
             <Route path="/ushering" component={Ushering} />
             <Route path="/event-planning" component={EventPlanning} />
             <Route path="/gallery" component={Gallery} />
+            <Route path="/our-staff" component={OurStaff} />
             <Route path="/shop" component={Shop} />
             <Route path="/contact" component={Contact} />
 

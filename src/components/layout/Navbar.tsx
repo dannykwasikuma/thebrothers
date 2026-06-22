@@ -52,6 +52,7 @@ const Navbar: React.FC = () => {
 
   const trailingLinks = [
     { name: 'Gallery', path: '/gallery' },
+    { name: 'Our Staff', path: '/our-staff' },
     { name: 'Shop', path: '/shop' },
     { name: 'Booking', path: '/booking' },
     { name: 'Contact', path: '/contact' },

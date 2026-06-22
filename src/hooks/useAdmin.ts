@@ -37,6 +37,8 @@ export interface StaffMember {
   staffTitle: string | null;
   status: 'active' | 'disabled';
   createdAt: string;
+  featuredByAdmin: boolean;
+  showOnPublicPage: boolean;
 }
 
 function mapStaff(row: any): StaffMember {
@@ -49,6 +51,8 @@ function mapStaff(row: any): StaffMember {
     staffTitle: row.staff_title,
     status: row.status,
     createdAt: row.created_at,
+    featuredByAdmin: row.featured_by_admin ?? false,
+    showOnPublicPage: row.show_on_public_page ?? false,
   };
 }
 
@@ -91,6 +95,60 @@ export function useRevokeStaff() {
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-staff'] }),
+  });
+}
+
+/** Promotes a staff member to a full second Admin. Only the Main Admin can do
+ *  this — enforced server-side by the prevent_self_role_escalation trigger,
+ *  not just in the UI. Does NOT set is_main_admin (that flag stays unique to
+ *  the original Main Admin account, since some tabs/permissions key off it
+ *  specifically rather than off role === 'admin'). */
+export function usePromoteToAdmin() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('profiles').update({ role: 'admin' }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-staff'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-admins'] });
+    },
+  });
+}
+
+/** Demotes a second Admin back down to Staff. Same trigger-enforced
+ *  restriction as promotion — only the Main Admin can call this successfully. */
+export function useDemoteToStaff() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('profiles').update({ role: 'staff' }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-staff'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-admins'] });
+    },
+  });
+}
+
+/** Lists everyone with role === 'admin' EXCEPT the Main Admin themself — this
+ *  list is for managing secondary admins, and the Main Admin shouldn't see a
+ *  "demote" control next to their own name (that account is permanent). */
+export function useListAdmins() {
+  return useQuery({
+    queryKey: ['admin-admins'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('role', 'admin')
+        .eq('is_main_admin', false)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data ?? []).map(mapStaff);
+    },
   });
 }
 

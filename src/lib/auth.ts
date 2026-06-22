@@ -65,6 +65,31 @@ export async function signInWithSocialProvider(
   return { ok: true };
 }
 
+// ── Forgot / reset password ────────────────────────────────────────────
+/** Step 1: sends a password-reset link to the given email. The link
+ *  takes the person to `${redirectTo}` (typically /reset-password) with a
+ *  recovery token in the URL, which Supabase reads automatically and turns
+ *  into a temporary signed-in session — that's what ResetPasswordPage checks
+ *  for before letting them set a new password. Requires the redirect URL to
+ *  be added under Supabase Dashboard -> Authentication -> URL Configuration
+ *  -> Redirect URLs, or Supabase will reject it. */
+export async function sendPasswordResetEmail(email: string, redirectTo: string): Promise<AuthResult> {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}${redirectTo}`,
+  });
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
+}
+
+/** Step 2: sets a new password for whoever the current (recovery) session
+ *  belongs to. Only works while a valid recovery session from the emailed
+ *  link is active — see ResetPasswordPage for the check that gates this. */
+export async function updatePassword(newPassword: string): Promise<AuthResult> {
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
+}
+
 // ── Shared ───────────────────────────────────────────────────────────────
 export async function signOut(): Promise<void> {
   await supabase.auth.signOut();

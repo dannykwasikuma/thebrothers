@@ -3,6 +3,7 @@ import { useListGallery } from '@/hooks/useCatalog';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ZoomIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import CustomerReviews from '@/components/CustomerReviews';
 
 const Gallery: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<string>('all');
@@ -71,9 +72,14 @@ const Gallery: React.FC = () => {
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                     <ZoomIn className="text-white w-10 h-10" />
                   </div>
-                  {item.title && (
+                  {(item.title || item.startingPrice !== null) && (
                     <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <p className="text-white font-serif">{item.title}</p>
+                      {item.title && <p className="text-white font-serif">{item.title}</p>}
+                      {item.startingPrice !== null && (
+                        <p className="text-[#C9A84C] text-sm font-sans mt-0.5">
+                          From GHS {item.startingPrice.toLocaleString()}{item.priceUnit ? ` / ${item.priceUnit}` : ''}
+                        </p>
+                      )}
                     </div>
                   )}
                 </motion.div>
@@ -104,7 +110,7 @@ const Gallery: React.FC = () => {
               key={lightboxIndex}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              src={filteredItems[lightboxIndex].url} 
+              src={filteredItems[lightboxIndex].imageUrl} 
               alt="Lightbox" 
               className="max-w-full max-h-[90vh] object-contain"
               onClick={(e) => e.stopPropagation()}
@@ -112,6 +118,8 @@ const Gallery: React.FC = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <CustomerReviews heading="Reviews From Our Gallery" />
     </div>
   );
 };

@@ -104,6 +104,11 @@ const SignInPage: React.FC = () => {
               <label className="text-xs text-[#C9A84C] uppercase tracking-wider">Password</label>
               <Input type="password" required value={password} onChange={(e) => setPassword(e.target.value)}
                 className="bg-[#0D0A07] border-[#3A3430] text-[#F5F0E8] rounded-none h-11" />
+              <div className="text-right">
+                <Link href="/forgot-password" className="text-xs text-[#F5F0E8]/50 hover:text-[#C9A84C]">
+                  Forgot password?
+                </Link>
+              </div>
             </div>
             <Button type="submit" disabled={submitting} className="w-full bg-[#C9A84C] hover:bg-[#C9A84C]/90 text-[#0D0A07] font-semibold rounded-none h-11">
               {submitting ? 'Signing In…' : 'Sign In'}

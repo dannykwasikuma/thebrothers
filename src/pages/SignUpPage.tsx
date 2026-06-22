@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Mail, Phone } from 'lucide-react';
 import SocialLoginButtons from '@/components/SocialLoginButtons';
+import PhoneInput from '@/components/PhoneInput';
 
 function useRedirectParam(): string {
   if (typeof window === 'undefined') return '/';
@@ -127,9 +128,8 @@ const SignUpPage: React.FC = () => {
             </div>
             <div className="space-y-2">
               <label className="text-xs text-[#C9A84C] uppercase tracking-wider">Phone Number</label>
-              <Input type="tel" required placeholder="+233547164110" value={phone} onChange={(e) => setPhone(e.target.value)}
-                className="bg-[#0D0A07] border-[#3A3430] text-[#F5F0E8] rounded-none h-11" />
-              <p className="text-xs text-[#F5F0E8]/40">Include country code, e.g. +233547164110</p>
+              <PhoneInput value={phone} onChange={setPhone} required />
+              <p className="text-xs text-[#F5F0E8]/40">Select your country, then enter your number</p>
             </div>
             <Button type="submit" disabled={submitting} className="w-full bg-[#C9A84C] hover:bg-[#C9A84C]/90 text-[#0D0A07] font-semibold rounded-none h-11">
               {submitting ? 'Sending…' : 'Send Code'}

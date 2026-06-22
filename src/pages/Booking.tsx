@@ -19,7 +19,8 @@ const Booking: React.FC = () => {
   const preselectedSubcategory = searchParams.get('subcategory') || '';
 
   const [serviceCategory, setServiceCategory] = useState<'catering' | 'ushering'>(preselectedCategory);
-  const { data: services } = useListServices({ category: serviceCategory });
+  const { data: services, error: servicesError } = useListServices({ category: serviceCategory });
+  if (servicesError) console.error('Failed to load services:', servicesError);
   const { toast } = useToast();
   const createBookingMutation = useCreateBooking();
 

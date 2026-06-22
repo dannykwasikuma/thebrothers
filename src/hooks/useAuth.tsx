@@ -14,6 +14,9 @@ export interface Profile {
   isMainAdmin: boolean;
   bio: string | null;
   avatarUrl: string | null;
+  showOnPublicPage: boolean;
+  featuredByAdmin: boolean;
+  publicRoleLabel: string | null;
   createdAt: string;
 }
 
@@ -30,6 +33,9 @@ function mapProfile(row: any): Profile {
     isMainAdmin: row.is_main_admin,
     bio: row.bio ?? null,
     avatarUrl: row.avatar_url ?? null,
+    showOnPublicPage: row.show_on_public_page ?? false,
+    featuredByAdmin: row.featured_by_admin ?? false,
+    publicRoleLabel: row.public_role_label ?? null,
     createdAt: row.created_at,
   };
 }

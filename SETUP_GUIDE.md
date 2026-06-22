@@ -150,3 +150,10 @@ no staff/customer management) — only the Main Admin sees everything.
 - **Main Admin**: there is exactly one — automatically the very first person who ever
   signs up on this site. This can't be changed later except by directly editing the
   `admin_settings`/`profiles` tables in Supabase if you ever truly need to.
+
+## 6. Updates in this version — what to run/click
+
+1. **Run the new migration**: SQL Editor → New Query → paste the entire contents of `supabase/migration_02.sql` → Run. Safe to run on a live project; it only adds tables/columns, it doesn't drop anything.
+2. **Enable password reset emails**: Authentication → URL Configuration → Redirect URLs → add `https://YOUR-DOMAIN/reset-password` (and `http://localhost:5173/reset-password` for local testing).
+3. **Create a Storage bucket for the Gallery**: Storage → New bucket → name it exactly `gallery` → toggle **Public** on. (This is separate from the existing `staff-hub` bucket and is required for the new admin gallery uploader to work.)
+4. Everything else (second admin, country-code phone input, Our Staff page, customer reviews) works automatically after the migration — no extra setup needed.

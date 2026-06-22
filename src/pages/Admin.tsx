@@ -16,8 +16,10 @@ import {
 import StaffManagementTab from '@/components/admin/StaffManagementTab';
 import CustomerManagementTab from '@/components/admin/CustomerManagementTab';
 import AnnouncementsTab from '@/components/admin/AnnouncementsTab';
+import CatalogManagementTab from '@/components/admin/CatalogManagementTab';
+import ReviewsTab from '@/components/admin/ReviewsTab';
 
-type TabKey = 'dashboard' | 'bookings' | 'orders' | 'staff' | 'customers' | 'announcements' | 'notifications';
+type TabKey = 'dashboard' | 'bookings' | 'orders' | 'staff' | 'customers' | 'catalog' | 'reviews' | 'announcements' | 'notifications';
 
 const Admin: React.FC = () => {
   const { isLoaded, isSignedIn, profile } = useAuth();
@@ -132,6 +134,8 @@ const Admin: React.FC = () => {
     { key: 'dashboard', label: 'Dashboard' },
     { key: 'bookings', label: 'Bookings' },
     { key: 'orders', label: 'Orders' },
+    { key: 'catalog', label: 'Catalog', adminOnly: true },
+    { key: 'reviews', label: 'Reviews', adminOnly: true },
     { key: 'staff', label: 'Staff', adminOnly: true },
     { key: 'customers', label: 'Customers', adminOnly: true },
     { key: 'announcements', label: 'Announcements', adminOnly: true },
@@ -353,6 +357,12 @@ const Admin: React.FC = () => {
             </table>
           </div>
         )}
+
+        {/* ── CATALOG MANAGEMENT (Main Admin only) ── */}
+        {activeTab === 'catalog' && isMainAdmin && <CatalogManagementTab />}
+
+        {/* ── CUSTOMER REVIEWS MODERATION (Main Admin only) ── */}
+        {activeTab === 'reviews' && isMainAdmin && <ReviewsTab />}
 
         {/* ── STAFF MANAGEMENT (Main Admin only) ── */}
         {activeTab === 'staff' && isMainAdmin && <StaffManagementTab />}

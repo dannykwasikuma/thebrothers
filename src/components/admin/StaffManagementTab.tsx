@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { UserPlus, KeyRound, Copy, Ban, Trash2, Users } from 'lucide-react';
+import { UserPlus, KeyRound, Copy, Ban, Trash2, Users, ShieldCheck, ShieldOff, Star } from 'lucide-react';
 import {
   useListStaff,
   useUpdateStaffStatus,
@@ -12,7 +12,11 @@ import {
   useDeactivateInviteCode,
   useAdminSettings,
   useUpdateAdminSettings,
+  usePromoteToAdmin,
+  useDemoteToStaff,
+  useListAdmins,
 } from '@/hooks/useAdmin';
+import { useSetStaffFeatured } from '@/hooks/useCatalog';
 
 const StaffManagementTab: React.FC = () => {
   const { toast } = useToast();
@@ -24,9 +28,14 @@ const StaffManagementTab: React.FC = () => {
   const updateStatusMutation = useUpdateStaffStatus();
   const revokeMutation = useRevokeStaff();
 
+  const { data: adminList, isLoading: loadingAdmins } = useListAdmins();
+  const promoteMutation = usePromoteToAdmin();
+  const demoteMutation = useDemoteToStaff();
+
   const { data: invites, isLoading: loadingInvites } = useListInviteCodes();
   const createInviteMutation = useCreateInviteCode();
   const deactivateInviteMutation = useDeactivateInviteCode();
+  const featureMutation = useSetStaffFeatured();
 
   const [newEmail, setNewEmail] = useState('');
   const [newTitle, setNewTitle] = useState('');
@@ -95,6 +104,29 @@ const StaffManagementTab: React.FC = () => {
 
   const handleStatusToggle = (id: string, currentStatus: 'active' | 'disabled') => {
     updateStatusMutation.mutate({ id, status: currentStatus === 'active' ? 'disabled' : 'active' });
+  };
+
+  const handlePromote = (id: string, name: string) => {
+    if (!confirm(`Promote ${name} to full Admin? They'll gain access to Staff, Customers, Announcements, and Notifications settings.`)) return;
+    promoteMutation.mutate(id, {
+      onSuccess: () => toast({ title: 'Promoted to Admin' }),
+      onError: (err: any) => toast({ title: 'Error', description: err?.message, variant: 'destructive' }),
+    });
+  };
+
+  const handleDemote = (id: string, name: string) => {
+    if (!confirm(`Demote ${name} back to Staff? They'll lose admin-level access.`)) return;
+    demoteMutation.mutate(id, {
+      onSuccess: () => toast({ title: 'Demoted to Staff' }),
+      onError: (err: any) => toast({ title: 'Error', description: err?.message, variant: 'destructive' }),
+    });
+  };
+
+  const handleToggleFeatured = (id: string, featured: boolean) => {
+    featureMutation.mutate({ userId: id, featured: !featured }, {
+      onSuccess: () => toast({ title: !featured ? 'Featured on Our Staff Page' : 'Removed From Featured' }),
+      onError: (err: any) => toast({ title: 'Error', description: err?.message, variant: 'destructive' }),
+    });
   };
 
   return (
@@ -185,6 +217,34 @@ const StaffManagementTab: React.FC = () => {
       </div>
 
       <div className="bg-card border border-border p-8">
+        <h3 className="text-xl font-serif text-foreground mb-2 flex items-center gap-2">
+          <ShieldCheck className="w-5 h-5 text-primary" /> Admins ({adminList?.length ?? 0})
+        </h3>
+        <p className="text-sm text-muted-foreground mb-6">
+          Full admins have access to every tab, including Staff, Customers, Announcements, and Notifications.
+          The original Main Admin account can't be demoted from here.
+        </p>
+        <div className="space-y-3">
+          {loadingAdmins && <p className="text-sm text-muted-foreground italic">Loading…</p>}
+          {!loadingAdmins && (adminList?.length ?? 0) === 0 && <p className="text-sm text-muted-foreground italic">No additional admins yet — promote a staff member below.</p>}
+          {adminList?.map(admin => (
+            <div key={admin.id} className="flex items-center justify-between p-4 border border-border bg-background flex-wrap gap-3">
+              <div>
+                <p className="font-serif text-foreground">{admin.fullName || admin.email || admin.phone}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {admin.staffId} &middot; {admin.staffTitle} &middot; {admin.email || admin.phone}
+                  {admin.status === 'disabled' && <span className="ml-2 text-destructive uppercase">Disabled</span>}
+                </p>
+              </div>
+              <Button size="sm" variant="outline" className="rounded-none h-8 text-destructive border-destructive/30 hover:bg-destructive/10" onClick={() => handleDemote(admin.id, admin.fullName || admin.email || 'this admin')}>
+                <ShieldOff className="w-3.5 h-3.5 mr-1" /> Demote to Staff
+              </Button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-card border border-border p-8">
         <h3 className="text-xl font-serif text-foreground mb-6">Current Staff ({staffList?.length ?? 0})</h3>
         <div className="space-y-3">
           {loadingStaff && <p className="text-sm text-muted-foreground italic">Loading…</p>}
@@ -199,6 +259,12 @@ const StaffManagementTab: React.FC = () => {
                 </p>
               </div>
               <div className="flex gap-2">
+                <Button size="sm" variant="outline" className={`rounded-none h-8 ${staff.featuredByAdmin ? 'text-primary border-primary/50 bg-primary/10' : ''}`} onClick={() => handleToggleFeatured(staff.id, staff.featuredByAdmin)} title="Feature on the public Our Staff page">
+                  <Star className={`w-3.5 h-3.5 mr-1 ${staff.featuredByAdmin ? 'fill-current' : ''}`} /> {staff.featuredByAdmin ? 'Featured' : 'Feature'}
+                </Button>
+                <Button size="sm" variant="outline" className="rounded-none h-8 text-primary border-primary/30 hover:bg-primary/10" onClick={() => handlePromote(staff.id, staff.fullName || staff.email || 'this staff member')}>
+                  <ShieldCheck className="w-3.5 h-3.5 mr-1" /> Promote to Admin
+                </Button>
                 <Button size="sm" variant="outline" className="rounded-none h-8" onClick={() => handleStatusToggle(staff.id, staff.status)}>
                   {staff.status === 'active' ? 'Disable' : 'Re-enable'}
                 </Button>

@@ -58,6 +58,7 @@ const StaffSignIn: React.FC = () => {
     setSubmitting(false);
 
     if (error || !profile) {
+      console.error('Staff sign-in profile lookup failed:', error);
       toast({ title: 'Error', description: 'Could not load your profile. Please try again.', variant: 'destructive' });
       return;
     }
@@ -110,7 +111,12 @@ const StaffSignIn: React.FC = () => {
               className="bg-[#0D0A07] border-[#3A3430] text-[#F5F0E8] rounded-none h-11" />
           </div>
           <div className="space-y-2">
-            <label className="text-xs text-[#C9A84C] uppercase tracking-wider">Password</label>
+            <div className="flex items-center justify-between">
+              <label className="text-xs text-[#C9A84C] uppercase tracking-wider">Password</label>
+              <Link href="/forgot-password" className="text-xs text-[#F5F0E8]/50 hover:text-[#C9A84C]">
+                Forgot password?
+              </Link>
+            </div>
             <Input type="password" required value={password} onChange={(e) => setPassword(e.target.value)}
               className="bg-[#0D0A07] border-[#3A3430] text-[#F5F0E8] rounded-none h-11" />
           </div>
