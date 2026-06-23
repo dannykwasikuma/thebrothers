@@ -484,3 +484,52 @@ export function useSubmitContactForm() {
     },
   });
 }
+
+export interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  subject: string | null;
+  message: string;
+  status: 'new' | 'read' | 'replied';
+  createdAt: string;
+}
+
+function mapContactMessage(row: any): ContactMessage {
+  return {
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    phone: row.phone,
+    subject: row.subject,
+    message: row.message,
+    status: row.status,
+    createdAt: row.created_at,
+  };
+}
+
+/** Admin/staff-only inbox of every contact form submission. RLS already
+ *  restricts this to staff/admin (see contact_messages_select_staff_admin in
+ *  schema.sql) — no migration needed, the table was already ready for this. */
+export function useListContactMessages() {
+  return useQuery({
+    queryKey: ['contact-messages'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('contact_messages').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data ?? []).map(mapContactMessage);
+    },
+  });
+}
+
+export function useUpdateContactMessageStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: 'new' | 'read' | 'replied' }) => {
+      const { error } = await supabase.from('contact_messages').update({ status }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['contact-messages'] }),
+  });
+}

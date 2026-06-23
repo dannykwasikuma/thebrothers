@@ -112,7 +112,7 @@ const Home: React.FC = () => {
             transition={{ duration: 0.8, delay: 0.85 }}
           >
             <Link href="/booking">
-              <Button className="w-full sm:w-auto h-14 px-10 bg-[#C9A84C] hover:bg-[#C9A84C]/90 text-[#0D0A07] text-lg font-serif rounded-none transition-all shadow-lg shadow-[#C9A84C]/20 hover:shadow-[#C9A84C]/40 hover:scale-105">
+              <Button className="w-full sm:w-auto h-14 px-10 btn-shimmer text-[#0D0A07] text-lg font-serif rounded-none transition-all shadow-lg shadow-[#C9A84C]/20 hover:shadow-[#C9A84C]/40 hover:scale-105">
                 Book an Event
               </Button>
             </Link>
@@ -192,7 +192,7 @@ const Home: React.FC = () => {
             >
               {featuredServices?.slice(0, 3).map((service) => (
                 <motion.div key={service.id} variants={fadeIn}>
-                  <Card className="h-full border border-[#C9A84C]/15 bg-[#0D0A07] rounded-none overflow-hidden group card-hover">
+                  <Card className="h-full border border-[#C9A84C]/15 bg-[#0D0A07] rounded-none overflow-hidden group card-hover card-lift">
                     <div className="relative h-64 overflow-hidden">
                       <img
                         src={service.imageUrl || '/images/wedding-catering.png'}
@@ -320,7 +320,7 @@ const Home: React.FC = () => {
             >
               {testimonials?.slice(0, 3).map((t) => (
                 <motion.div key={t.id} variants={fadeIn}>
-                  <Card className="h-full bg-[#0A0806] border border-[#C9A84C]/12 rounded-none p-8 flex flex-col relative overflow-hidden testimonial-quote card-hover">
+                  <Card className="h-full bg-[#0A0806] border border-[#C9A84C]/12 rounded-none p-8 flex flex-col relative overflow-hidden testimonial-quote card-hover card-lift">
                     <div className="flex text-[#C9A84C] mb-5 relative z-10">
                       {[...Array(t.rating)].map((_, i) => <Star key={i} className="w-4 h-4 fill-current" />)}
                     </div>
@@ -359,7 +359,7 @@ const Home: React.FC = () => {
             </motion.p>
             <motion.div variants={fadeIn}>
               <Link href="/booking">
-                <Button className="h-16 px-12 bg-[#C9A84C] hover:bg-[#C9A84C]/90 text-[#0D0A07] text-xl font-serif rounded-none transition-all hover:scale-105 shadow-xl shadow-[#C9A84C]/25">
+                <Button className="h-16 px-12 btn-shimmer text-[#0D0A07] text-xl font-serif rounded-none transition-all hover:scale-105 shadow-xl shadow-[#C9A84C]/25">
                   Request a Consultation
                 </Button>
               </Link>

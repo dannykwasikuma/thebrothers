@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Users, Star, UserCog, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
@@ -36,7 +36,8 @@ const OurStaff: React.FC = () => {
   const isStaffOrAdmin = profile?.role === 'staff' || profile?.role === 'admin';
 
   const [editingMine, setEditingMine] = useState(false);
-  const [bioDraft, setBioDraft] = useState(profile?.bio || '');
+  const [bioDraft, setBioDraft] = useState('');
+  useEffect(() => { if (profile?.bio) setBioDraft(profile.bio); }, [profile?.bio]);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
 

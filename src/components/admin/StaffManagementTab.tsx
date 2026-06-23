@@ -236,9 +236,14 @@ const StaffManagementTab: React.FC = () => {
                   {admin.status === 'disabled' && <span className="ml-2 text-destructive uppercase">Disabled</span>}
                 </p>
               </div>
-              <Button size="sm" variant="outline" className="rounded-none h-8 text-destructive border-destructive/30 hover:bg-destructive/10" onClick={() => handleDemote(admin.id, admin.fullName || admin.email || 'this admin')}>
-                <ShieldOff className="w-3.5 h-3.5 mr-1" /> Demote to Staff
-              </Button>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" className={`rounded-none h-8 ${admin.featuredByAdmin ? 'text-primary border-primary/50 bg-primary/10' : ''}`} onClick={() => handleToggleFeatured(admin.id, admin.featuredByAdmin)} title="Feature on the public Our Staff page">
+                  <Star className={`w-3.5 h-3.5 mr-1 ${admin.featuredByAdmin ? 'fill-current' : ''}`} /> {admin.featuredByAdmin ? 'Featured' : 'Feature'}
+                </Button>
+                <Button size="sm" variant="outline" className="rounded-none h-8 text-destructive border-destructive/30 hover:bg-destructive/10" onClick={() => handleDemote(admin.id, admin.fullName || admin.email || 'this admin')}>
+                  <ShieldOff className="w-3.5 h-3.5 mr-1" /> Demote to Staff
+                </Button>
+              </div>
             </div>
           ))}
         </div>

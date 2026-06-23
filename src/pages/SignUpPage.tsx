@@ -4,9 +4,11 @@ import { signUpWithEmail, sendPhoneOtp, verifyPhoneOtp } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Mail, Phone } from 'lucide-react';
+import { Mail, Phone, KeyRound } from 'lucide-react';
 import SocialLoginButtons from '@/components/SocialLoginButtons';
 import PhoneInput from '@/components/PhoneInput';
+import { useRedeemInviteCode } from '@/hooks/useAdmin';
+import { useAuth } from '@/hooks/useAuth';
 
 function useRedirectParam(): string {
   if (typeof window === 'undefined') return '/';
@@ -18,30 +20,69 @@ function useRedirectParam(): string {
 const SignUpPage: React.FC = () => {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { refreshProfile } = useAuth();
   const redirectTo = useRedirectParam();
 
   const [method, setMethod] = useState<'email' | 'phone'>('email');
   const [submitting, setSubmitting] = useState(false);
 
+  // Shared fields
   const [fullName, setFullName] = useState('');
+  const [staffCode, setStaffCode] = useState('');
+
+  // Email fields
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  // Phone fields
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
+
+  const redeemCode = useRedeemInviteCode();
+
+  /**
+   * After sign-up, try redeeming the staff invite code if one was entered.
+   * On success the account is promoted to staff server-side and the local
+   * profile is refreshed so the rest of the app sees the new role right away.
+   */
+  const tryRedeemCode = async () => {
+    const code = staffCode.trim().toUpperCase();
+    if (!code) return;
+    const result = await redeemCode.mutateAsync(code);
+    if (result.ok) {
+      await refreshProfile();
+      toast({
+        title: 'Staff Code Accepted',
+        description: 'Your account has been set up as a staff member.',
+      });
+    } else {
+      // Account was created — only the code was wrong/expired.
+      toast({
+        title: 'Invite Code Not Valid',
+        description:
+          result.error ??
+          'The code you entered was not recognised or has already been used. Your account was still created — contact admin if you need staff access.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     const result = await signUpWithEmail(email, password, fullName);
-    setSubmitting(false);
     if (result.ok) {
-      toast({ title: 'Account Created', description: 'Check your email to confirm your address, then sign in.' });
+      await tryRedeemCode();
+      toast({
+        title: 'Account Created',
+        description: 'Check your email to confirm your address, then sign in.',
+      });
       setLocation(`/sign-in?redirect=${encodeURIComponent(redirectTo)}`);
     } else {
       toast({ title: 'Sign Up Failed', description: result.error, variant: 'destructive' });
     }
+    setSubmitting(false);
   };
 
   const handleSendOtp = async (e: React.FormEvent) => {
@@ -65,13 +106,41 @@ const SignUpPage: React.FC = () => {
     e.preventDefault();
     setSubmitting(true);
     const result = await verifyPhoneOtp(phone, otp);
-    setSubmitting(false);
     if (result.ok) {
+      await tryRedeemCode();
       setLocation(redirectTo);
     } else {
       toast({ title: 'Verification Failed', description: result.error, variant: 'destructive' });
     }
+    setSubmitting(false);
   };
+
+  /**
+   * Staff Invite Code field — shown on both the email and phone forms.
+   * Only staff joining for the first time need this. Regular customers
+   * leave it blank and get a standard customer account automatically.
+   */
+  const StaffCodeField = (
+    <div className="space-y-2 border border-[#C9A84C]/20 rounded-sm p-4 bg-[#0D0A07]">
+      <label className="text-xs text-[#C9A84C] uppercase tracking-wider flex items-center gap-1.5">
+        <KeyRound className="w-3.5 h-3.5" />
+        Staff Invite Code
+        <span className="text-[#F5F0E8]/30 normal-case tracking-normal font-sans ml-1">— optional</span>
+      </label>
+      <Input
+        value={staffCode}
+        onChange={(e) => setStaffCode(e.target.value.toUpperCase())}
+        placeholder="e.g. BRTHR-XXXX"
+        maxLength={20}
+        autoComplete="off"
+        className="bg-[#1A1410] border-[#3A3430] text-[#F5F0E8] rounded-none h-11 tracking-widest font-mono placeholder:tracking-normal placeholder:font-sans"
+      />
+      <p className="text-xs text-[#F5F0E8]/40 leading-relaxed">
+        Joining as a staff member? Enter the code the admin gave you here.
+        Leave blank if you are a regular customer.
+      </p>
+    </div>
+  );
 
   return (
     <div className="flex min-h-[100dvh] items-center justify-center bg-[#0D0A07] px-4 relative overflow-hidden">
@@ -80,72 +149,134 @@ const SignUpPage: React.FC = () => {
         <h1 className="text-2xl font-display text-[#C9A84C] text-center mb-2">Create Your Account</h1>
         <p className="text-[#F5F0E8]/60 text-center text-sm mb-8">Experience premium hospitality</p>
 
+        {/* Email / Phone toggle */}
         <div className="flex gap-2 mb-8 bg-[#0D0A07] p-1 rounded-sm">
           <button
             type="button"
             onClick={() => setMethod('email')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm rounded-sm transition-colors ${method === 'email' ? 'bg-[#C9A84C] text-[#0D0A07] font-medium' : 'text-[#F5F0E8]/60'}`}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm rounded-sm transition-colors ${
+              method === 'email' ? 'bg-[#C9A84C] text-[#0D0A07] font-medium' : 'text-[#F5F0E8]/60'
+            }`}
           >
             <Mail className="w-4 h-4" /> Email
           </button>
           <button
             type="button"
             onClick={() => setMethod('phone')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm rounded-sm transition-colors ${method === 'phone' ? 'bg-[#C9A84C] text-[#0D0A07] font-medium' : 'text-[#F5F0E8]/60'}`}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm rounded-sm transition-colors ${
+              method === 'phone' ? 'bg-[#C9A84C] text-[#0D0A07] font-medium' : 'text-[#F5F0E8]/60'
+            }`}
           >
             <Phone className="w-4 h-4" /> Phone
           </button>
         </div>
 
-        {method === 'email' ? (
+        {/* ── EMAIL FORM ── */}
+        {method === 'email' && (
           <form onSubmit={handleEmailSubmit} className="space-y-5">
             <div className="space-y-2">
               <label className="text-xs text-[#C9A84C] uppercase tracking-wider">Full Name</label>
-              <Input required value={fullName} onChange={(e) => setFullName(e.target.value)}
-                className="bg-[#0D0A07] border-[#3A3430] text-[#F5F0E8] rounded-none h-11" />
+              <Input
+                required
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="bg-[#0D0A07] border-[#3A3430] text-[#F5F0E8] rounded-none h-11"
+              />
             </div>
             <div className="space-y-2">
               <label className="text-xs text-[#C9A84C] uppercase tracking-wider">Email</label>
-              <Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
-                className="bg-[#0D0A07] border-[#3A3430] text-[#F5F0E8] rounded-none h-11" />
+              <Input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="bg-[#0D0A07] border-[#3A3430] text-[#F5F0E8] rounded-none h-11"
+              />
             </div>
             <div className="space-y-2">
               <label className="text-xs text-[#C9A84C] uppercase tracking-wider">Password</label>
-              <Input type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)}
-                className="bg-[#0D0A07] border-[#3A3430] text-[#F5F0E8] rounded-none h-11" />
+              <Input
+                type="password"
+                required
+                minLength={6}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="bg-[#0D0A07] border-[#3A3430] text-[#F5F0E8] rounded-none h-11"
+              />
               <p className="text-xs text-[#F5F0E8]/40">At least 6 characters</p>
             </div>
-            <Button type="submit" disabled={submitting} className="w-full bg-[#C9A84C] hover:bg-[#C9A84C]/90 text-[#0D0A07] font-semibold rounded-none h-11">
+
+            {StaffCodeField}
+
+            <Button
+              type="submit"
+              disabled={submitting}
+              className="w-full bg-[#C9A84C] hover:bg-[#C9A84C]/90 text-[#0D0A07] font-semibold rounded-none h-11"
+            >
               {submitting ? 'Creating Account…' : 'Create Account'}
             </Button>
           </form>
-        ) : !otpSent ? (
+        )}
+
+        {/* ── PHONE FORM — step 1: get number ── */}
+        {method === 'phone' && !otpSent && (
           <form onSubmit={handleSendOtp} className="space-y-5">
             <div className="space-y-2">
               <label className="text-xs text-[#C9A84C] uppercase tracking-wider">Full Name</label>
-              <Input required value={fullName} onChange={(e) => setFullName(e.target.value)}
-                className="bg-[#0D0A07] border-[#3A3430] text-[#F5F0E8] rounded-none h-11" />
+              <Input
+                required
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="bg-[#0D0A07] border-[#3A3430] text-[#F5F0E8] rounded-none h-11"
+              />
             </div>
             <div className="space-y-2">
               <label className="text-xs text-[#C9A84C] uppercase tracking-wider">Phone Number</label>
               <PhoneInput value={phone} onChange={setPhone} required />
               <p className="text-xs text-[#F5F0E8]/40">Select your country, then enter your number</p>
             </div>
-            <Button type="submit" disabled={submitting} className="w-full bg-[#C9A84C] hover:bg-[#C9A84C]/90 text-[#0D0A07] font-semibold rounded-none h-11">
+
+            {StaffCodeField}
+
+            <Button
+              type="submit"
+              disabled={submitting}
+              className="w-full bg-[#C9A84C] hover:bg-[#C9A84C]/90 text-[#0D0A07] font-semibold rounded-none h-11"
+            >
               {submitting ? 'Sending…' : 'Send Code'}
             </Button>
           </form>
-        ) : (
+        )}
+
+        {/* ── PHONE FORM — step 2: enter OTP ── */}
+        {method === 'phone' && otpSent && (
           <form onSubmit={handleVerifyOtp} className="space-y-5">
+            <p className="text-sm text-[#F5F0E8]/60 text-center">
+              Enter the code we sent to <span className="text-[#F5F0E8]">{phone}</span>
+            </p>
             <div className="space-y-2">
-              <label className="text-xs text-[#C9A84C] uppercase tracking-wider">Enter Code</label>
-              <Input required placeholder="123456" value={otp} onChange={(e) => setOtp(e.target.value)}
-                className="bg-[#0D0A07] border-[#3A3430] text-[#F5F0E8] rounded-none h-11 text-center text-lg tracking-widest" maxLength={6} />
+              <label className="text-xs text-[#C9A84C] uppercase tracking-wider">Verification Code</label>
+              <Input
+                required
+                placeholder="123456"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                className="bg-[#0D0A07] border-[#3A3430] text-[#F5F0E8] rounded-none h-11 text-center text-lg tracking-widest"
+                maxLength={6}
+              />
             </div>
-            <Button type="submit" disabled={submitting} className="w-full bg-[#C9A84C] hover:bg-[#C9A84C]/90 text-[#0D0A07] font-semibold rounded-none h-11">
+            <Button
+              type="submit"
+              disabled={submitting}
+              className="w-full bg-[#C9A84C] hover:bg-[#C9A84C]/90 text-[#0D0A07] font-semibold rounded-none h-11"
+            >
               {submitting ? 'Verifying…' : 'Verify & Create Account'}
             </Button>
-            <button type="button" onClick={() => setOtpSent(false)} className="w-full text-center text-sm text-[#F5F0E8]/50 hover:text-[#F5F0E8]">
+            <button
+              type="button"
+              onClick={() => setOtpSent(false)}
+              className="w-full text-center text-sm text-[#F5F0E8]/50 hover:text-[#F5F0E8]"
+            >
               Use a different number
             </button>
           </form>

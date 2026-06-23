@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { User, Calendar, ShoppingBag, Settings, LogOut, FileText, Star, MessageSquareQuote } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useListBookings } from '@/hooks/useBookings';
+import { useListBookings, useCancelBooking } from '@/hooks/useBookings';
 import { useListOrders } from '@/hooks/useOrders';
 import { useCreateTestimonial } from '@/hooks/useCatalog';
+import { useListQuoteRequests } from '@/hooks/useQuotes';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -17,6 +18,16 @@ const Account: React.FC = () => {
 
   const { profile, isLoaded, signOut, updateProfile } = useAuth();
   const { data: bookings, isLoading: loadingBookings } = useListBookings();
+  const { data: quoteRequests } = useListQuoteRequests();
+  const cancelBookingMutation = useCancelBooking();
+
+  const handleCancelBooking = (id: string, serviceName: string) => {
+    if (!confirm(`Cancel your booking for "${serviceName}"? This can't be undone.`)) return;
+    cancelBookingMutation.mutate(id, {
+      onSuccess: () => toast({ title: 'Booking Cancelled' }),
+      onError: (err: any) => toast({ title: 'Could Not Cancel', description: err?.message, variant: 'destructive' }),
+    });
+  };
   const { data: orders, isLoading: loadingOrders } = useListOrders();
   const { toast } = useToast();
 
@@ -201,12 +212,62 @@ const Account: React.FC = () => {
                               {booking.serviceType.toUpperCase()} • {booking.guestCount || 'TBD'} Guests
                             </p>
                           </div>
+                          <div className="flex sm:flex-col gap-2 sm:items-end justify-center">
+                            <Link href={`/booking-receipt/${booking.id}`}>
+                              <Button size="sm" variant="outline" className="rounded-none border-border">
+                                <FileText className="w-3.5 h-3.5 mr-1.5" /> Receipt
+                              </Button>
+                            </Link>
+                            {(booking.status === 'pending' || booking.status === 'confirmed') && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="rounded-none border-destructive/40 text-destructive hover:bg-destructive/10"
+                                disabled={cancelBookingMutation.isPending}
+                                onClick={() => handleCancelBooking(booking.id, booking.serviceName || booking.serviceType)}
+                              >
+                                Cancel Booking
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       ))}
                     </div>
                   ) : (
                     <div className="p-16 text-center text-muted-foreground italic font-serif">You have no bookings yet.</div>
                   )}
+                </div>
+              </div>
+            )}
+
+            {/* QUOTE REQUESTS (shown under Bookings since they're both event-related) */}
+            {activeTab === 'bookings' && quoteRequests && quoteRequests.length > 0 && (
+              <div className="bg-card border border-border mt-6">
+                <div className="p-6 md:p-8 border-b border-border flex justify-between items-center">
+                  <h3 className="text-2xl font-serif text-foreground">My Quote Requests</h3>
+                  <Link href="/request-quote">
+                    <Button variant="outline" className="border-primary text-primary rounded-none">New Request</Button>
+                  </Link>
+                </div>
+                <div className="divide-y divide-border">
+                  {quoteRequests.map((q) => (
+                    <div key={q.id} className="p-6 md:p-8 flex flex-col sm:flex-row justify-between gap-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-3">
+                          <span className="font-serif font-bold text-lg text-foreground">{q.eventType || 'Custom Event'}</span>
+                          <span className={`text-xs px-2 py-1 uppercase tracking-wider font-bold ${
+                            q.status === 'quoted' ? 'bg-primary/20 text-primary' :
+                            q.status === 'reviewing' ? 'bg-yellow-500/20 text-yellow-500' :
+                            q.status === 'closed' ? 'bg-muted text-muted-foreground' :
+                            'bg-blue-500/20 text-blue-500'
+                          }`}>
+                            {q.status}
+                          </span>
+                        </div>
+                        <p className="text-muted-foreground font-sans text-sm">Submitted {format(new Date(q.createdAt), 'MMMM dd, yyyy')}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}

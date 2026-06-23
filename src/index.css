@@ -211,3 +211,190 @@
 
 /* ── Stat strip item divider (mobile-safe) ── */
 .stat-strip-item { position: relative; }
+
+/* ============================================================
+   ANIMATIONS & TRANSITIONS — Brothers v2
+   All non-Framer Motion helpers. Framer Motion handles page
+   and component entry animations; these CSS helpers cover
+   micro-interactions, persistent hover states, and anything
+   that runs continuously (pulses, floats, gradients).
+   ============================================================ */
+
+/* ── Page enter (used by PageTransition wrapper in RootLayout) ── */
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.page-enter {
+  animation: pageEnter 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Stagger helpers (add stagger-1 … stagger-6 to siblings) ── */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.12s; }
+.stagger-3 { animation-delay: 0.19s; }
+.stagger-4 { animation-delay: 0.26s; }
+.stagger-5 { animation-delay: 0.33s; }
+.stagger-6 { animation-delay: 0.40s; }
+
+/* ── Button press feel ── */
+button:not(:disabled):active,
+[role="button"]:not(:disabled):active {
+  transform: scale(0.97);
+  transition: transform 0.1s ease;
+}
+
+/* ── Gold shimmer on primary CTA buttons ── */
+@keyframes goldShimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.btn-shimmer {
+  background: linear-gradient(
+    90deg,
+    #C9A84C 0%,
+    #E8C96A 40%,
+    #C9A84C 60%,
+    #A88630 100%
+  );
+  background-size: 200% auto;
+  animation: goldShimmer 3.5s linear infinite;
+  color: #0D0A07;
+}
+
+/* ── Image zoom on hover (cards, gallery thumbnails) ── */
+.img-zoom {
+  overflow: hidden;
+}
+.img-zoom img,
+.img-zoom-target {
+  transition: transform 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.img-zoom:hover img,
+.img-zoom:hover .img-zoom-target {
+  transform: scale(1.06);
+}
+
+/* ── Floating gentle bob (decorative elements, logo at rest) ── */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-8px); }
+}
+.float { animation: float 5s ease-in-out infinite; }
+.float-slow { animation: float 8s ease-in-out infinite; }
+
+/* ── Gold pulse ring (used on featured/highlighted items) ── */
+@keyframes goldRing {
+  0%   { box-shadow: 0 0 0 0 rgba(201,168,76,0.45); }
+  70%  { box-shadow: 0 0 0 12px rgba(201,168,76,0); }
+  100% { box-shadow: 0 0 0 0 rgba(201,168,76,0); }
+}
+.gold-pulse { animation: goldRing 2.5s ease-out infinite; }
+
+/* ── Fade + slide in from bottom (intersect-reveal alternative) ── */
+@keyframes revealUp {
+  from { opacity: 0; transform: translateY(32px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.reveal-up {
+  animation: revealUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Smooth underline grow on links (wider than nav-link-underline) ── */
+.link-grow {
+  position: relative;
+  display: inline-block;
+}
+.link-grow::after {
+  content: '';
+  position: absolute;
+  bottom: -2px; left: 50%; right: 50%;
+  height: 1px;
+  background: #C9A84C;
+  transition: left 0.3s ease, right 0.3s ease;
+}
+.link-grow:hover::after { left: 0; right: 0; }
+
+/* ── Skeleton shimmer (loading states) ── */
+@keyframes skeletonShimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.04) 25%,
+    rgba(255,255,255,0.08) 50%,
+    rgba(255,255,255,0.04) 75%
+  );
+  background-size: 800px 100%;
+  animation: skeletonShimmer 1.6s ease-in-out infinite;
+}
+
+/* ── Smooth input focus ring ── */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(201,168,76,0.40);
+  border-color: #C9A84C !important;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+/* ── Enhanced card hover (richer than the original .card-hover) ── */
+.card-lift {
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.35s ease,
+    box-shadow 0.35s ease;
+}
+.card-lift:hover {
+  transform: translateY(-8px) scale(1.01);
+  border-color: rgba(201,168,76,0.35);
+  box-shadow:
+    0 24px 48px rgba(0,0,0,0.45),
+    0 0 0 1px rgba(201,168,76,0.10);
+}
+
+/* ── Gold divider line animate in ── */
+@keyframes growWidth {
+  from { width: 0; }
+  to   { width: 64px; }
+}
+.section-rule-animate {
+  width: 0;
+  animation: growWidth 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.3s forwards;
+}
+
+/* ── Smooth mobile menu slide (supplements the Tailwind max-h transition) ── */
+@keyframes mobileMenuIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.mobile-menu-enter { animation: mobileMenuIn 0.3s ease both; }
+
+/* ── Tab underline slide ── */
+.tab-active-bar {
+  position: relative;
+}
+.tab-active-bar::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; left: 0; right: 0;
+  height: 2px;
+  background: #C9A84C;
+  border-radius: 1px;
+  transform: scaleX(0);
+  transition: transform 0.25s ease;
+}
+.tab-active-bar[data-active="true"]::after {
+  transform: scaleX(1);
+}
+
+/* ── Star rating fill animation ── */
+@keyframes starPop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+.star-pop { animation: starPop 0.25s ease; }

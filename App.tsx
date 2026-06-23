@@ -21,6 +21,8 @@ import Booking from "@/pages/Booking";
 import Cart from "@/pages/Cart";
 import Checkout from "@/pages/Checkout";
 import Receipt from "@/pages/Receipt";
+import BookingReceipt from "@/pages/BookingReceipt";
+import RequestQuote from "@/pages/RequestQuote";
 import Account from "@/pages/Account";
 import Admin from "@/pages/Admin";
 import StaffSignup from "@/pages/StaffSignup";
@@ -72,12 +74,21 @@ function AppRoutes() {
         )}
       </Route>
 
+      <Route path="/booking-receipt/:bookingId">
+        {(params) => (
+          <RequireAuth>
+            <BookingReceipt bookingId={params.bookingId} />
+          </RequireAuth>
+        )}
+      </Route>
+
       <Route>
         <RootLayout>
           <Switch>
             <Route path="/" component={Home} />
             <Route path="/about" component={About} />
             <Route path="/our-staff" component={OurStaff} />
+            <Route path="/request-quote" component={RequestQuote} />
             <Route path="/catering" component={Catering} />
             <Route path="/ushering" component={Ushering} />
             <Route path="/event-planning" component={EventPlanning} />

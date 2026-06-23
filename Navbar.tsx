@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { SERVICE_MENU } from '@/lib/serviceMenu';
+import NotificationBell from '@/components/layout/NotificationBell';
 const logoUrl = '/logo.png';
 
 const Navbar: React.FC = () => {
@@ -160,6 +161,8 @@ const Navbar: React.FC = () => {
         </nav>
 
         <div className="flex items-center gap-3 z-50">
+          <NotificationBell />
+
           <Link href="/cart" className="relative text-[#F5F0E8] hover:text-[#C9A84C] transition-colors p-2 group">
             <ShoppingCart className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
             {cartItemsCount > 0 && (

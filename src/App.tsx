@@ -30,6 +30,7 @@ import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
 import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import LoginPortal from "@/pages/LoginPortal";
 import StaffSignIn from "@/pages/StaffSignIn";
+import StaffRegisterPage from "@/pages/StaffRegisterPage";
 import StaffHub from "@/pages/StaffHub";
 import OurStaff from "@/pages/OurStaff";
 import Terms from "@/pages/Terms";
@@ -63,6 +64,7 @@ function AppRoutes() {
       <Route path="/forgot-password" component={ForgotPasswordPage} />
       <Route path="/reset-password" component={ResetPasswordPage} />
       <Route path="/staff/sign-in" component={StaffSignIn} />
+      <Route path="/staff/register" component={StaffRegisterPage} />
 
       <Route path="/receipt/:orderId">
         {(params) => (

@@ -67,7 +67,7 @@ const Catering: React.FC = () => {
           >
             {services?.map((service) => (
               <motion.div key={service.id} variants={fadeIn}>
-                <Card className="h-full border border-border/50 bg-card rounded-none overflow-hidden flex flex-col group card-hover">
+                <Card className="h-full border border-border/50 bg-card rounded-none overflow-hidden flex flex-col group card-hover card-lift">
                   <div className="relative h-72 overflow-hidden">
                     <img
                       src={service.imageUrl || '/images/wedding-catering.png'}

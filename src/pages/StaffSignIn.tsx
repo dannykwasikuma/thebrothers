@@ -127,8 +127,8 @@ const StaffSignIn: React.FC = () => {
 
         <p className="text-center text-sm text-[#F5F0E8]/50 mt-8">
           New staff member?{' '}
-          <Link href="/staff-signup" className="text-[#C9A84C] hover:underline">
-            Activate your invite code
+          <Link href="/staff/register" className="text-[#C9A84C] hover:underline">
+            Create your staff account
           </Link>
         </p>
       </div>

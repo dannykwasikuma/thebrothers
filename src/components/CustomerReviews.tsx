@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Star, MessageSquarePlus, X, Send } from 'lucide-react';
 import { useListApprovedFeedback, useSubmitFeedback } from '@/hooks/useCatalog';
@@ -50,7 +50,8 @@ const CustomerReviews: React.FC<{ heading?: string }> = ({ heading = 'What Our C
   const { toast } = useToast();
 
   const [formOpen, setFormOpen] = useState(false);
-  const [authorName, setAuthorName] = useState(profile?.fullName || '');
+  const [authorName, setAuthorName] = useState('');
+  useEffect(() => { if (profile?.fullName && !authorName) setAuthorName(profile.fullName); }, [profile?.fullName]);
   const [eventLabel, setEventLabel] = useState('');
   const [rating, setRating] = useState(5);
   const [message, setMessage] = useState('');
