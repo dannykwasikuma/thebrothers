@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Star, Check, X, Trash2 } from 'lucide-react';
 import { useListAllFeedbackAdmin, useUpdateFeedbackStatus, useDeleteFeedback } from '@/hooks/useCatalog';
+import { playStamp, playError } from '@/lib/sounds';
 
 type FilterTab = 'pending' | 'approved' | 'rejected' | 'all';
 
@@ -24,6 +25,7 @@ const ReviewsTab: React.FC = () => {
   const pendingCount = feedback?.filter((f) => f.status === 'pending').length ?? 0;
 
   const handleApprove = (id: string) => {
+    playStamp();
     updateStatus.mutate({ id, status: 'approved' }, {
       onSuccess: () => toast({ title: 'Review Approved', description: 'It will now show on the public site.' }),
       onError: (err: any) => toast({ title: 'Error', description: err?.message, variant: 'destructive' }),
@@ -31,6 +33,7 @@ const ReviewsTab: React.FC = () => {
   };
 
   const handleReject = (id: string) => {
+    playError();
     updateStatus.mutate({ id, status: 'rejected' }, {
       onSuccess: () => toast({ title: 'Review Rejected' }),
       onError: (err: any) => toast({ title: 'Error', description: err?.message, variant: 'destructive' }),

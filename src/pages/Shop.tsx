@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { playAddToCart, playError } from '@/lib/sounds';
 
 const Shop: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -23,6 +24,7 @@ const Shop: React.FC = () => {
   const handleAddToCart = (productId: string, productName: string) => {
     addToCartMutation.mutate({ data: { productId, quantity: 1 } }, {
       onSuccess: () => {
+        playAddToCart();
         toast({
           title: "Added to Cart",
           description: `${productName} has been added to your cart.`,
@@ -30,6 +32,7 @@ const Shop: React.FC = () => {
         });
       },
       onError: (err: any) => {
+        playError();
         toast({
           title: "Error",
           description: err?.message || "Could not add item to cart. Please try again.",

@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { ShieldAlert, Users, TrendingUp, Calendar, ShoppingBag, Check, Bell, Send, Info, UserCog, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useListAdminBookings, useUpdateBookingStatus } from '@/hooks/useBookings';
@@ -18,8 +19,77 @@ import CustomerManagementTab from '@/components/admin/CustomerManagementTab';
 import AnnouncementsTab from '@/components/admin/AnnouncementsTab';
 import CatalogManagementTab from '@/components/admin/CatalogManagementTab';
 import ReviewsTab from '@/components/admin/ReviewsTab';
+import ContactMessagesTab from '@/components/admin/ContactMessagesTab';
+import { useSendNotification } from '@/hooks/useNotifications';
+import { useListCustomers } from '@/hooks/useAdmin';
+import { playSuccess, playError } from '@/lib/sounds';
 
-type TabKey = 'dashboard' | 'bookings' | 'orders' | 'staff' | 'customers' | 'catalog' | 'reviews' | 'announcements' | 'notifications';
+/** Inline panel that lets the Main Admin send an in-app notification to a
+ *  specific customer (by email/name search) or broadcast to all customers. */
+const InAppNotificationSender: React.FC = () => {
+  const { toast } = useToast();
+  const send = useSendNotification();
+  const { data: customers } = useListCustomers?.() ?? { data: [] };
+  const [title, setTitle] = React.useState('');
+  const [body, setBody] = React.useState('');
+  const [link, setLink] = React.useState('');
+  const [userId, setUserId] = React.useState('');
+
+  const handleSend = () => {
+    if (!title.trim()) {
+      toast({ title: 'Title required', variant: 'destructive' });
+      return;
+    }
+    send.mutate(
+      { userId: userId || undefined, title: title.trim(), body: body.trim() || undefined, link: link.trim() || undefined },
+      {
+        onSuccess: () => {
+          playSuccess();
+          toast({ title: userId ? 'Notification Sent' : 'Broadcast Sent to All Customers' });
+          setTitle(''); setBody(''); setLink(''); setUserId('');
+        },
+        onError: (err: any) => { playError(); toast({ title: 'Error', description: err?.message, variant: 'destructive' }); },
+      }
+    );
+  };
+
+  return (
+    <div className="bg-card border border-border p-8">
+      <h3 className="text-xl font-serif text-foreground mb-2 flex items-center gap-2">
+        <Bell className="w-5 h-5 text-primary" /> Send In-App Notification
+      </h3>
+      <p className="text-sm text-muted-foreground mb-6">Send a notification to a specific customer or broadcast to everyone. Shows in the bell icon in their Navbar.</p>
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <label className="text-xs text-primary uppercase tracking-wider">Recipient</label>
+          <select value={userId} onChange={e => setUserId(e.target.value)} className="h-10 px-3 w-full bg-background border border-border rounded-none text-sm">
+            <option value="">All Customers (Broadcast)</option>
+            {(customers ?? []).map((c: any) => (
+              <option key={c.id} value={c.id}>{c.fullName || c.email || c.phone}</option>
+            ))}
+          </select>
+        </div>
+        <div className="space-y-2">
+          <label className="text-xs text-primary uppercase tracking-wider">Title</label>
+          <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Your booking has been confirmed!" className="rounded-none" />
+        </div>
+        <div className="space-y-2">
+          <label className="text-xs text-primary uppercase tracking-wider">Message (optional)</label>
+          <Textarea value={body} onChange={e => setBody(e.target.value)} rows={2} placeholder="Additional details…" className="rounded-none resize-none" />
+        </div>
+        <div className="space-y-2">
+          <label className="text-xs text-primary uppercase tracking-wider">Link (optional)</label>
+          <Input value={link} onChange={e => setLink(e.target.value)} placeholder="e.g. /account" className="rounded-none" />
+        </div>
+        <Button disabled={send.isPending} onClick={handleSend} className="rounded-none gap-2">
+          <Send className="w-4 h-4" /> {send.isPending ? 'Sending…' : userId ? 'Send to Customer' : 'Broadcast to All'}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+type TabKey = 'dashboard' | 'bookings' | 'orders' | 'messages' | 'staff' | 'customers' | 'catalog' | 'reviews' | 'announcements' | 'notifications';
 
 const Admin: React.FC = () => {
   const { isLoaded, isSignedIn, profile } = useAuth();
@@ -134,6 +204,7 @@ const Admin: React.FC = () => {
     { key: 'dashboard', label: 'Dashboard' },
     { key: 'bookings', label: 'Bookings' },
     { key: 'orders', label: 'Orders' },
+    { key: 'messages', label: 'Messages' },
     { key: 'catalog', label: 'Catalog', adminOnly: true },
     { key: 'reviews', label: 'Reviews', adminOnly: true },
     { key: 'staff', label: 'Staff', adminOnly: true },
@@ -358,6 +429,9 @@ const Admin: React.FC = () => {
           </div>
         )}
 
+        {/* ── CONTACT MESSAGES INBOX ── */}
+        {activeTab === 'messages' && <ContactMessagesTab />}
+
         {/* ── CATALOG MANAGEMENT (Main Admin only) ── */}
         {activeTab === 'catalog' && isMainAdmin && <CatalogManagementTab />}
 
@@ -442,6 +516,8 @@ const Admin: React.FC = () => {
               )}
               <Button variant="outline" className="rounded-none" disabled={sendTestMutation.isPending} onClick={handleSendTest}>{sendTestMutation.isPending ? 'Sending…' : 'Send Test Notification'}</Button>
             </div>
+
+            <InAppNotificationSender />
           </div>
         )}
 

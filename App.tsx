@@ -9,6 +9,7 @@ import ChatBot from "@/components/ChatBot";
 import SiteTutorial from "@/components/SiteTutorial";
 import AuthGate from "@/components/AuthGate";
 import RootLayout from "@/components/layout/RootLayout";
+import StaffLayout from "@/components/layout/StaffLayout";
 import Home from "@/pages/Home";
 import About from "@/pages/About";
 import Catering from "@/pages/Catering";
@@ -34,6 +35,7 @@ import OurStaff from "@/pages/OurStaff";
 import LoginPortal from "@/pages/LoginPortal";
 import StaffSignIn from "@/pages/StaffSignIn";
 import StaffHub from "@/pages/StaffHub";
+import StaffDashboard from "@/pages/StaffDashboard";
 import Terms from "@/pages/Terms";
 import Privacy from "@/pages/Privacy";
 import NotFound from "@/pages/not-found";
@@ -52,6 +54,23 @@ function RequireAuth({ children }: { children: React.ReactNode }) {
   if (!isSignedIn) {
     const redirect = encodeURIComponent(window.location.pathname);
     return <Redirect to={`/sign-in?redirect=${redirect}`} />;
+  }
+  return <>{children}</>;
+}
+
+/** Like RequireAuth, but also blocks plain customer accounts — used for
+ *  staff-only pages like the Staff Dashboard. A signed-in customer who
+ *  navigates here directly is bounced to the normal homepage rather than
+ *  being shown staff-facing data/links. */
+function RequireStaff({ children }: { children: React.ReactNode }) {
+  const { isLoaded, isSignedIn, profile } = useAuth();
+  if (!isLoaded) return <div className="min-h-screen bg-background" />;
+  if (!isSignedIn) {
+    const redirect = encodeURIComponent(window.location.pathname);
+    return <Redirect to={`/staff/sign-in?redirect=${redirect}`} />;
+  }
+  if (profile && profile.role !== 'staff' && profile.role !== 'admin') {
+    return <Redirect to="/" />;
   }
   return <>{children}</>;
 }
@@ -80,6 +99,25 @@ function AppRoutes() {
             <BookingReceipt bookingId={params.bookingId} />
           </RequireAuth>
         )}
+      </Route>
+
+      {/* Staff/admin area: its own layout (StaffLayout), no customer nav,
+          cart, or WhatsApp float — kept structurally separate from the
+          public site's RootLayout group below. */}
+      <Route path="/staff-dashboard">
+        <RequireStaff>
+          <StaffLayout><StaffDashboard /></StaffLayout>
+        </RequireStaff>
+      </Route>
+      <Route path="/admin">
+        <RequireStaff>
+          <StaffLayout><Admin /></StaffLayout>
+        </RequireStaff>
+      </Route>
+      <Route path="/team">
+        <RequireStaff>
+          <StaffLayout><StaffHub /></StaffLayout>
+        </RequireStaff>
       </Route>
 
       <Route>
@@ -122,15 +160,7 @@ function AppRoutes() {
             <Route path="/account">
               <RequireAuth><Account /></RequireAuth>
             </Route>
-            <Route path="/admin">
-              <RequireAuth><Admin /></RequireAuth>
-            </Route>
-            <Route path="/staff-signup">
-              <RequireAuth><StaffSignup /></RequireAuth>
-            </Route>
-            <Route path="/team">
-              <RequireAuth><StaffHub /></RequireAuth>
-            </Route>
+            <Route path="/staff-signup" component={StaffSignup} />
             <Route path="/terms" component={Terms} />
             <Route path="/privacy" component={Privacy} />
 

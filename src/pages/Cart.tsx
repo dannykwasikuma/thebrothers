@@ -4,6 +4,7 @@ import { Link } from 'wouter';
 import { Trash2, Plus, Minus, ShoppingBag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { playClick, playError, playSuccess } from '@/lib/sounds';
 
 const Cart: React.FC = () => {
   const { data: cart, isLoading } = useGetCart();
@@ -14,16 +15,19 @@ const Cart: React.FC = () => {
 
   const handleUpdateQuantity = (itemId: string, newQuantity: number) => {
     if (newQuantity <= 0) return;
+    playClick();
     updateItemMutation.mutate({ id: itemId, quantity: newQuantity });
   };
 
   const handleRemove = (itemId: string) => {
+    playError();
     removeItemMutation.mutate(itemId, {
       onSuccess: () => toast({ title: "Item removed" }),
     });
   };
 
   const handleClear = () => {
+    playError();
     clearCartMutation.mutate(undefined, {
       onSuccess: () => toast({ title: "Cart cleared" }),
     });

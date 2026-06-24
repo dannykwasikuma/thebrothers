@@ -7,18 +7,19 @@ import { useToast } from '@/hooks/use-toast';
 import { Mail, Phone } from 'lucide-react';
 import SocialLoginButtons from '@/components/SocialLoginButtons';
 import PhoneInput from '@/components/PhoneInput';
+import { supabase } from '@/lib/supabase';
 
-function useRedirectParam(): string {
-  if (typeof window === 'undefined') return '/';
+function useRedirectParam(): { redirectTo: string; wasExplicit: boolean } {
+  if (typeof window === 'undefined') return { redirectTo: '/', wasExplicit: false };
   const params = new URLSearchParams(window.location.search);
   const redirect = params.get('redirect');
-  return redirect ? decodeURIComponent(redirect) : '/';
+  return redirect ? { redirectTo: decodeURIComponent(redirect), wasExplicit: true } : { redirectTo: '/', wasExplicit: false };
 }
 
 const SignInPage: React.FC = () => {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const redirectTo = useRedirectParam();
+  const { redirectTo, wasExplicit } = useRedirectParam();
 
   const [method, setMethod] = useState<'email' | 'phone'>('email');
   const [submitting, setSubmitting] = useState(false);
@@ -32,14 +33,28 @@ const SignInPage: React.FC = () => {
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
 
+  /** If the person didn't ask to go somewhere specific, send staff/admin
+   *  accounts to their dashboard instead of the customer homepage. A
+   *  customer (or a staff member who WAS bounced to a specific page, e.g.
+   *  /checkout) still goes exactly where they were headed. */
+  const resolveLandingPage = async (): Promise<string> => {
+    if (wasExplicit) return redirectTo;
+    const { data } = await supabase.auth.getUser();
+    if (!data.user) return redirectTo;
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', data.user.id).single();
+    if (profile?.role === 'staff' || profile?.role === 'admin') return '/staff-dashboard';
+    return redirectTo;
+  };
+
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     const result = await signInWithEmail(email, password);
-    setSubmitting(false);
     if (result.ok) {
-      setLocation(redirectTo);
-    } else {
+      setLocation(await resolveLandingPage());
+    }
+    setSubmitting(false);
+    if (!result.ok) {
       toast({ title: 'Sign In Failed', description: result.error, variant: 'destructive' });
     }
   };
@@ -61,10 +76,11 @@ const SignInPage: React.FC = () => {
     e.preventDefault();
     setSubmitting(true);
     const result = await verifyPhoneOtp(phone, otp);
-    setSubmitting(false);
     if (result.ok) {
-      setLocation(redirectTo);
-    } else {
+      setLocation(await resolveLandingPage());
+    }
+    setSubmitting(false);
+    if (!result.ok) {
       toast({ title: 'Verification Failed', description: result.error, variant: 'destructive' });
     }
   };

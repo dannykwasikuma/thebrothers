@@ -631,3 +631,93 @@ export function useSetStaffFeatured() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['public-staff-directory'] }),
   });
 }
+
+// ============================================================
+// CONTACT MESSAGES — Admin inbox
+// ============================================================
+export interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  subject: string | null;
+  message: string;
+  status: 'new' | 'read' | 'replied';
+  createdAt: string;
+}
+
+function mapContactMessage(row: any): ContactMessage {
+  return {
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    phone: row.phone,
+    subject: row.subject,
+    message: row.message,
+    status: row.status,
+    createdAt: row.created_at,
+  };
+}
+
+export function useListContactMessages() {
+  return useQuery({
+    queryKey: ['contact-messages'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('contact_messages')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data ?? []).map(mapContactMessage);
+    },
+  });
+}
+
+export function useUpdateContactMessageStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: ContactMessage['status'] }) => {
+      const { error } = await supabase.from('contact_messages').update({ status }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['contact-messages'] }),
+  });
+}
+
+// ============================================================
+// QUOTE REQUESTS
+// ============================================================
+export interface QuoteRequestInput {
+  name: string;
+  email: string;
+  phone?: string;
+  eventType: string;
+  eventDate: string;
+  guestCount: string;
+  location: string;
+  details: string;
+}
+
+/** Anyone can submit a quote request — stored as a contact_message with
+ *  subject "Quote Request" so it lands in the existing admin inbox. */
+export function useSubmitQuoteRequest() {
+  return useMutation({
+    mutationFn: async (input: QuoteRequestInput) => {
+      const message = [
+        `Event Type: ${input.eventType}`,
+        `Event Date: ${input.eventDate}`,
+        `Guest Count: ${input.guestCount}`,
+        `Location: ${input.location}`,
+        `Details: ${input.details}`,
+      ].join('\n');
+      const { error } = await supabase.from('contact_messages').insert({
+        name: input.name,
+        email: input.email,
+        phone: input.phone || null,
+        subject: `Quote Request — ${input.eventType}`,
+        message,
+      });
+      if (error) throw error;
+    },
+  });
+}

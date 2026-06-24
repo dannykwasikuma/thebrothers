@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { playStar, playSuccess, playError, playWhoosh } from '@/lib/sounds';
 
 const fadeIn = {
   hidden: { opacity: 0, y: 24 },
@@ -23,7 +24,7 @@ const StarPicker: React.FC<{ value: number; onChange: (v: number) => void }> = (
         <button
           key={n}
           type="button"
-          onClick={() => onChange(n)}
+          onClick={() => { onChange(n); playStar(); }}
           onMouseEnter={() => setHover(n)}
           onMouseLeave={() => setHover(0)}
           aria-label={`${n} star${n === 1 ? '' : 's'}`}
@@ -66,13 +67,14 @@ const CustomerReviews: React.FC<{ heading?: string }> = ({ heading = 'What Our C
       { authorName: authorName.trim(), eventLabel: eventLabel.trim() || undefined, rating, message: message.trim() },
       {
         onSuccess: () => {
+          playSuccess();
           toast({ title: 'Thank You!', description: "Your review has been submitted and will appear once it's reviewed." });
           setFormOpen(false);
           setMessage('');
           setEventLabel('');
           setRating(5);
         },
-        onError: (err: any) => toast({ title: 'Could Not Submit', description: err?.message, variant: 'destructive' }),
+        onError: (err: any) => { playError(); toast({ title: 'Could Not Submit', description: err?.message, variant: 'destructive' }); },
       }
     );
   };
@@ -89,7 +91,7 @@ const CustomerReviews: React.FC<{ heading?: string }> = ({ heading = 'What Our C
             <h2 className="text-3xl md:text-5xl font-display text-[#C9A84C] mt-4">{heading}</h2>
           </div>
           <Button
-            onClick={() => setFormOpen((o) => !o)}
+            onClick={() => { setFormOpen((o) => !o); playWhoosh(); }}
             className="bg-[#C9A84C] hover:bg-[#C9A84C]/90 text-[#0D0A07] font-serif rounded-none gap-2 self-start md:self-auto"
           >
             {formOpen ? <X className="w-4 h-4" /> : <MessageSquarePlus className="w-4 h-4" />}

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { MessageCircle, X, Send, Bot } from "lucide-react";
 import { getAssistantReply } from "@/lib/chatbotKnowledge";
+import { playChatOpen, playSend, playNotification } from "@/lib/sounds";
 
 interface Message {
   role: "user" | "assistant";
@@ -40,19 +41,18 @@ export default function ChatBot() {
 
   async function send(text: string) {
     if (!text.trim() || loading) return;
+    playSend();
     setShowQuickReplies(false);
     setMessages((prev) => [...prev, { role: "user", content: text }]);
     setInput("");
     setLoading(true);
 
-    // Brief, deliberate pause so the reply doesn't feel instant/robotic —
-    // there's no network call here since this runs entirely client-side
-    // against real site data (see lib/chatbotKnowledge.ts).
     await new Promise((resolve) => setTimeout(resolve, 500 + Math.random() * 400));
 
     const reply = getAssistantReply(text);
     setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
     setLoading(false);
+    playNotification();
   }
 
   return (
@@ -60,7 +60,7 @@ export default function ChatBot() {
       {/* Floating button */}
       <button
         data-testid="chatbot-toggle"
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => { setOpen((v) => !v); playChatOpen(); }}
         aria-label="Open customer support chat"
         className="fixed bottom-6 left-6 z-50 w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95"
         style={{

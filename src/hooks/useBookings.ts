@@ -135,3 +135,40 @@ export function useUpdateBookingStatus() {
     },
   });
 }
+
+/** Customer cancels their own booking — only while it's still pending. */
+export function useCancelBooking() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('bookings')
+        .update({ status: 'cancelled' })
+        .eq('id', id)
+        .eq('status', 'pending'); // safety: can only cancel pending ones
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+    },
+  });
+}
+
+/** Fetch a single booking by ID — used for the booking confirmation page. */
+export function useGetBooking(id: string | null) {
+  return useQuery({
+    queryKey: ['booking', id],
+    enabled: Boolean(id),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select('*')
+        .eq('id', id!)
+        .single();
+      if (error) throw error;
+      return mapBooking(data);
+    },
+  });
+}

@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { motion } from 'framer-motion';
 import { CalendarDays, MapPin, Users, ClipboardList } from 'lucide-react';
+import { playSuccess } from '@/lib/sounds';
 
 const Booking: React.FC = () => {
   const [, setLocation] = useLocation();
@@ -52,9 +53,11 @@ const Booking: React.FC = () => {
       guestCount:    formData.guestCount || undefined,
       notes:         formData.notes || undefined,
     }, {
-      onSuccess: () => {
-        toast({ title: 'Booking Requested', description: "Your request has been submitted. We'll confirm shortly." });
-        setLocation('/account');
+      onSuccess: (data: any) => {
+        playSuccess();
+        const id = data?.id || data?.[0]?.id;
+        if (id) setLocation(`/booking/confirmation/${id}`);
+        else setLocation('/account');
       },
       onError: (err: any) => {
         toast({ title: 'Error', description: err?.message || 'Failed to submit. Please try again.', variant: 'destructive' });

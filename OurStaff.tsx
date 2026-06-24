@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { useListStaffDirectory } from '@/hooks/useCatalog';
 import { Users } from 'lucide-react';
 
@@ -14,13 +15,13 @@ const OurStaff: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#0D0A07] pt-32 pb-24 px-4">
       <div className="max-w-5xl mx-auto">
-        <div className="text-center mb-16">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="text-center mb-16">
           <span className="text-[#C9A84C] text-xs tracking-[0.28em] uppercase font-sans">The People Behind The Service</span>
           <h1 className="text-4xl md:text-5xl font-display text-[#F5F0E8] mt-3">Our Staff</h1>
           <p className="text-[#F5F0E8]/60 mt-4 max-w-xl mx-auto">
             Meet the team that makes every event run smoothly, from planning to the last plate cleared.
           </p>
-        </div>
+        </motion.div>
 
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
@@ -32,9 +33,18 @@ const OurStaff: React.FC = () => {
             <p>Our team profiles are coming soon — check back shortly.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"
+          >
             {staff.map((member) => (
-              <div key={member.id} className="bg-[#1A1410] border border-[#C9A84C]/15 rounded-md p-6 text-center hover:border-[#C9A84C]/40 transition-colors">
+              <motion.div
+                key={member.id}
+                variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
+                className="bg-[#1A1410] border border-[#C9A84C]/15 rounded-md p-6 text-center transition-all duration-300 hover:border-[#C9A84C]/40 hover:-translate-y-1 hover:shadow-lg hover:shadow-[#C9A84C]/5"
+              >
                 {member.avatarUrl ? (
                   <img src={member.avatarUrl} alt={member.fullName || 'Staff member'} className="w-20 h-20 rounded-full object-cover mx-auto mb-4" />
                 ) : (
@@ -45,9 +55,9 @@ const OurStaff: React.FC = () => {
                 <h3 className="font-serif text-lg text-[#F5F0E8]">{member.fullName}</h3>
                 {member.staffTitle && <p className="text-[#C9A84C] text-sm mt-0.5">{member.staffTitle}</p>}
                 {member.bio && <p className="text-[#F5F0E8]/60 text-sm mt-3 leading-relaxed">{member.bio}</p>}
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
       </div>
     </div>

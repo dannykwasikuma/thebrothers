@@ -17,6 +17,8 @@ import EventPlanning from "@/pages/EventPlanning";
 import Gallery from "@/pages/Gallery";
 import Shop from "@/pages/Shop";
 import Contact from "@/pages/Contact";
+import QuoteRequest from "@/pages/QuoteRequest";
+import BookingConfirmation from "@/pages/BookingConfirmation";
 import Booking from "@/pages/Booking";
 import Cart from "@/pages/Cart";
 import Checkout from "@/pages/Checkout";
@@ -86,6 +88,10 @@ function AppRoutes() {
             <Route path="/our-staff" component={OurStaff} />
             <Route path="/shop" component={Shop} />
             <Route path="/contact" component={Contact} />
+            <Route path="/quote" component={QuoteRequest} />
+            <Route path="/booking/confirmation/:id">
+              {(params) => <BookingConfirmation bookingId={params.id} />}
+            </Route>
 
             {/* 14 service category pages, generated from the single SERVICE_MENU
                 source so they always match what's shown in the Navbar dropdown. */}

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { User, Calendar, ShoppingBag, Settings, LogOut, FileText } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useListBookings } from '@/hooks/useBookings';
+import { useListBookings, useCancelBooking } from '@/hooks/useBookings';
 import { useListOrders } from '@/hooks/useOrders';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +15,7 @@ const Account: React.FC = () => {
 
   const { profile, isLoaded, signOut, updateProfile } = useAuth();
   const { data: bookings, isLoading: loadingBookings } = useListBookings();
+  const cancelBooking = useCancelBooking();
   const { data: orders, isLoading: loadingOrders } = useListOrders();
   const { toast } = useToast();
 
@@ -137,11 +138,16 @@ const Account: React.FC = () => {
             {/* BOOKINGS TAB */}
             {activeTab === 'bookings' && (
               <div className="bg-card border border-border">
-                <div className="p-6 md:p-8 border-b border-border flex justify-between items-center">
+                <div className="p-6 md:p-8 border-b border-border flex justify-between items-center flex-wrap gap-3">
                   <h3 className="text-2xl font-serif text-foreground">Event Bookings</h3>
-                  <Link href="/booking">
-                    <Button variant="outline" className="border-primary text-primary rounded-none">New Booking</Button>
-                  </Link>
+                  <div className="flex gap-2">
+                    <Link href="/quote">
+                      <Button variant="outline" className="border-primary/50 text-primary rounded-none text-sm">Request a Quote</Button>
+                    </Link>
+                    <Link href="/booking">
+                      <Button variant="outline" className="border-primary text-primary rounded-none">New Booking</Button>
+                    </Link>
+                  </div>
                 </div>
                 <div className="p-0">
                   {loadingBookings ? <div className="p-8 text-center">Loading...</div> :
@@ -155,6 +161,7 @@ const Account: React.FC = () => {
                               <span className={`text-xs px-2 py-1 uppercase tracking-wider font-bold ${
                                 booking.status === 'confirmed' ? 'bg-green-500/20 text-green-500' :
                                 booking.status === 'pending' ? 'bg-yellow-500/20 text-yellow-500' :
+                                booking.status === 'cancelled' ? 'bg-destructive/20 text-destructive' :
                                 'bg-muted text-muted-foreground'
                               }`}>
                                 {booking.status}
@@ -167,6 +174,26 @@ const Account: React.FC = () => {
                               {booking.serviceType.toUpperCase()} • {booking.guestCount || 'TBD'} Guests
                             </p>
                           </div>
+                          {booking.status === 'pending' && (
+                            <div className="flex items-start">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="rounded-none text-destructive border-destructive/30 hover:bg-destructive/10"
+                                disabled={cancelBooking.isPending}
+                                onClick={() => {
+                                  if (confirm('Cancel this booking? This cannot be undone.')) {
+                                    cancelBooking.mutate(booking.id, {
+                                      onSuccess: () => toast({ title: 'Booking Cancelled' }),
+                                      onError: (err: any) => toast({ title: 'Error', description: err?.message, variant: 'destructive' }),
+                                    });
+                                  }
+                                }}
+                              >
+                                Cancel Booking
+                              </Button>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>

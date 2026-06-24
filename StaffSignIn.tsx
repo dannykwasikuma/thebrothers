@@ -8,10 +8,10 @@ import { useToast } from '@/hooks/use-toast';
 import { ShieldCheck, ArrowLeft } from 'lucide-react';
 
 function useRedirectParam(): string {
-  if (typeof window === 'undefined') return '/admin';
+  if (typeof window === 'undefined') return '/staff-dashboard';
   const params = new URLSearchParams(window.location.search);
   const redirect = params.get('redirect');
-  return redirect ? decodeURIComponent(redirect) : '/admin';
+  return redirect ? decodeURIComponent(redirect) : '/staff-dashboard';
 }
 
 /**
@@ -123,7 +123,7 @@ const StaffSignIn: React.FC = () => {
         <p className="text-center text-sm text-[#F5F0E8]/50 mt-8">
           New staff member?{' '}
           <Link href="/staff-signup" className="text-[#C9A84C] hover:underline">
-            Activate your invite code
+            Enter your invite code to get started
           </Link>
         </p>
       </div>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Link, useLocation } from 'wouter';
 import { useAuth } from '@/hooks/useAuth';
 import { useCreateQuoteRequest } from '@/hooks/useQuotes';
@@ -61,7 +62,7 @@ const RequestQuote: React.FC = () => {
         </Link>
 
         {submitted ? (
-          <div className="bg-[#1A1410] border border-[#C9A84C]/25 rounded-md p-10 text-center space-y-4">
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4 }} className="bg-[#1A1410] border border-[#C9A84C]/25 rounded-md p-10 text-center space-y-4">
             <CheckCircle2 className="w-14 h-14 text-[#C9A84C] mx-auto" />
             <h1 className="text-2xl font-display text-[#C9A84C]">Request Sent</h1>
             <p className="text-[#F5F0E8]/60 text-sm max-w-md mx-auto">
@@ -70,18 +71,24 @@ const RequestQuote: React.FC = () => {
             <Button onClick={() => setLocation('/account')} className="bg-[#C9A84C] hover:bg-[#C9A84C]/90 text-[#0D0A07] font-semibold rounded-none h-11 mt-2">
               View My Account
             </Button>
-          </div>
+          </motion.div>
         ) : (
           <>
-            <div className="text-center mb-10">
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="text-center mb-10">
               <span className="text-[#C9A84C] text-xs tracking-[0.28em] uppercase font-sans">Large or Custom Events</span>
               <h1 className="text-4xl font-display text-[#F5F0E8] mt-3">Request a Quote</h1>
               <p className="text-[#F5F0E8]/60 mt-4 max-w-lg mx-auto">
                 Tell us about your event and we'll put together a custom quote — perfect for large gatherings or anything that doesn't fit our standard packages.
               </p>
-            </div>
+            </motion.div>
 
-            <form onSubmit={handleSubmit} className="bg-[#1A1410] border border-[#C9A84C]/25 rounded-md p-8 md:p-10 space-y-6">
+            <motion.form
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              onSubmit={handleSubmit}
+              className="bg-[#1A1410] border border-[#C9A84C]/25 rounded-md p-8 md:p-10 space-y-6"
+            >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="space-y-2">
                   <label className="text-xs text-[#C9A84C] uppercase tracking-wider">Full Name</label>
@@ -134,7 +141,7 @@ const RequestQuote: React.FC = () => {
               <Button type="submit" disabled={createQuote.isPending} className="w-full bg-[#C9A84C] hover:bg-[#C9A84C]/90 text-[#0D0A07] font-semibold rounded-none h-12">
                 {createQuote.isPending ? 'Sending…' : 'Submit Request'}
               </Button>
-            </form>
+            </motion.form>
           </>
         )}
       </div>
