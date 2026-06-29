@@ -3,6 +3,7 @@ import { Link } from 'wouter';
 import { Bell } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useListNotifications, useMarkNotificationRead, useMarkAllNotificationsRead } from '@/hooks/useNotifications';
+import { playNotificationPing } from '@/lib/sounds';
 import { format } from 'date-fns';
 
 const NotificationBell: React.FC = () => {
@@ -12,6 +13,7 @@ const NotificationBell: React.FC = () => {
   const markAllRead = useMarkAllNotificationsRead();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const previousUnreadCount = useRef<number | null>(null);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -20,6 +22,18 @@ const NotificationBell: React.FC = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Play a soft ping only when the unread count goes UP between polls — not
+  // on first load (that would ping for every pre-existing unread item every
+  // time the page is opened) and not when it goes down (marking things read).
+  useEffect(() => {
+    if (!notifications) return;
+    const currentUnread = notifications.filter((n) => !n.read).length;
+    if (previousUnreadCount.current !== null && currentUnread > previousUnreadCount.current) {
+      playNotificationPing();
+    }
+    previousUnreadCount.current = currentUnread;
+  }, [notifications]);
 
   if (!isSignedIn) return null;
 

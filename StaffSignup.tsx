@@ -3,6 +3,8 @@ import { useLocation, Link } from 'wouter';
 import { useAuth } from '@/hooks/useAuth';
 import { useStaffSignupMode, useRedeemInviteCode } from '@/hooks/useAdmin';
 import { signUpWithEmail } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
+import { playSuccessChime } from '@/lib/sounds';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +28,7 @@ const StaffSignup: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [creatingAccount, setCreatingAccount] = useState(false);
+  const [awaitingEmailConfirm, setAwaitingEmailConfirm] = useState(false);
 
   if (!isLoaded || loadingMode) return <div className="min-h-screen bg-background pt-32" />;
 
@@ -66,13 +69,23 @@ const StaffSignup: React.FC = () => {
     setError('');
     setCreatingAccount(true);
     const result = await signUpWithEmail(email, password, fullName);
-    setCreatingAccount(false);
     if (!result.ok) {
+      setCreatingAccount(false);
       setError(result.error || 'Could not create your account.');
       return;
     }
-    await refreshProfile();
-    toast({ title: 'Account Created', description: 'Now enter your invite code below to activate your staff account.' });
+    // signUpWithEmail succeeding does NOT guarantee a usable session — if
+    // email confirmation is required, the person isn't actually signed in
+    // until they click the link in their inbox. Check for a real session
+    // before assuming we can move straight to code redemption.
+    const { data } = await supabase.auth.getSession();
+    setCreatingAccount(false);
+    if (data.session) {
+      await refreshProfile();
+      toast({ title: 'Account Created', description: 'Now enter your invite code below to activate your staff account.' });
+    } else {
+      setAwaitingEmailConfirm(true);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -82,6 +95,7 @@ const StaffSignup: React.FC = () => {
     redeemMutation.mutate(code, {
       onSuccess: async (result) => {
         if (result.ok) {
+          playSuccessChime();
           toast({ title: 'Welcome to the Team!', description: `Your Staff ID is ${result.staffId}.` });
           await refreshProfile();
           setLocation('/staff-dashboard');
@@ -107,7 +121,17 @@ const StaffSignup: React.FC = () => {
           <KeyRound className="w-6 h-6 text-primary" />
         </div>
 
-        {!isSignedIn ? (
+        {awaitingEmailConfirm ? (
+          <>
+            <h1 className="text-2xl font-display text-primary text-center mb-2">Check Your Email</h1>
+            <p className="text-muted-foreground text-center text-sm mb-6">
+              We sent a confirmation link to <span className="text-foreground font-medium">{email}</span>. Click it, then come back to this page and sign in to enter your invite code.
+            </p>
+            <Link href={`/sign-in?redirect=${encodeURIComponent('/staff-signup')}`}>
+              <Button className="w-full rounded-none h-12">I've Confirmed — Sign In</Button>
+            </Link>
+          </>
+        ) : !isSignedIn ? (
           <>
             <h1 className="text-2xl font-display text-primary text-center mb-2">Create Your Staff Account</h1>
             <p className="text-muted-foreground text-center text-sm mb-8">

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
+import { playSuccessChime, playSoftAlert } from '@/lib/sounds';
 import { User, Calendar, ShoppingBag, Settings, LogOut, FileText, Star, MessageSquareQuote } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useListBookings, useCancelBooking } from '@/hooks/useBookings';
@@ -24,7 +25,7 @@ const Account: React.FC = () => {
   const handleCancelBooking = (id: string, serviceName: string) => {
     if (!confirm(`Cancel your booking for "${serviceName}"? This can't be undone.`)) return;
     cancelBookingMutation.mutate(id, {
-      onSuccess: () => toast({ title: 'Booking Cancelled' }),
+      onSuccess: () => { playSoftAlert(); toast({ title: 'Booking Cancelled' }); },
       onError: (err: any) => toast({ title: 'Could Not Cancel', description: err?.message, variant: 'destructive' }),
     });
   };
@@ -71,6 +72,7 @@ const Account: React.FC = () => {
       { authorName: profile?.fullName || 'A Valued Customer', eventLabel: reviewEventLabel || null, quote: reviewQuote.trim(), rating: reviewRating },
       {
         onSuccess: () => {
+          playSuccessChime();
           setReviewSubmitted(true);
           setReviewQuote('');
           setReviewEventLabel('');

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Link, useLocation } from 'wouter';
 import { useAuth } from '@/hooks/useAuth';
 import { useCreateQuoteRequest } from '@/hooks/useQuotes';
+import { playSuccessChime } from '@/lib/sounds';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -34,7 +35,7 @@ const RequestQuote: React.FC = () => {
     createQuote.mutate(
       { fullName, email, phone: phone || undefined, eventType: eventType || undefined, eventDate: eventDate || undefined, estimatedGuests: estimatedGuests || undefined, budgetRange: budgetRange || undefined, details: details.trim() },
       {
-        onSuccess: () => setSubmitted(true),
+        onSuccess: () => { playSuccessChime(); setSubmitted(true); },
         onError: (err: any) => toast({ title: 'Could Not Submit Request', description: err?.message, variant: 'destructive' }),
       }
     );
